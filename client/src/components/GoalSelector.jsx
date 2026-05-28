@@ -2,7 +2,7 @@ const goals = ['Overall Summary', 'Compare Categories', 'Find Relationships', 'D
 
 export default function GoalSelector({ goal, onGoalChange, targetColumn, onTargetColumnChange, columns }) {
   return (
-    <section className="card control-card">
+    <section className="card control-card accent-purple">
       <div>
         <h2>Analysis Goal</h2>
         <p className="muted">The goal changes the plan, tools, chart, and report.</p>

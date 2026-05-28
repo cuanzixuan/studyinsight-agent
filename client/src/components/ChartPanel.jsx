@@ -57,10 +57,13 @@ export default function ChartPanel({ goal, profile, results, data }) {
   return (
     <section className="card">
       <div className="section-title">
-        <h2>Visualization</h2>
+        <div>
+          <h2>Visualization</h2>
+          <p className="section-subtitle">A responsive chart generated from the selected analysis result.</p>
+        </div>
         <span className="badge">{profile?.rowCount || 0} rows analyzed</span>
       </div>
-      {chart}
+      <div className="chart-frame">{chart}</div>
     </section>
   );
 }

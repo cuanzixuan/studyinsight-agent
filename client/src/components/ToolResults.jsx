@@ -18,7 +18,10 @@ export default function ToolResults({ goal, results }) {
   return (
     <section className="card">
       <div className="section-title">
-        <h2>Tool Execution Results</h2>
+        <div>
+          <h2>Tool Execution Results</h2>
+          <p className="section-subtitle">Computed outputs from deterministic analysis tools.</p>
+        </div>
         <span className="badge">{goal}</span>
       </div>
       {goal === 'Overall Summary' && (
@@ -36,7 +39,8 @@ export default function ToolResults({ goal, results }) {
           <div className="metric-grid">
             <div><strong>{results.categoryColumn}</strong><span>Category</span></div>
             <div><strong>{results.numericColumn}</strong><span>Metric</span></div>
-            <div><strong>{results.groupedMeans.length}</strong><span>Groups</span></div>
+            <div><strong>{results.highestGroup?.category}</strong><span>Highest group ({results.highestGroup?.mean})</span></div>
+            <div><strong>{results.lowestGroup?.category}</strong><span>Lowest group ({results.lowestGroup?.mean})</span></div>
           </div>
           <MiniTable rows={results.groupedMeans} />
         </>
@@ -46,6 +50,7 @@ export default function ToolResults({ goal, results }) {
           <div className="metric-grid">
             <div><strong>{results.strongestPair.join(' + ')}</strong><span>Strongest pair</span></div>
             <div><strong>{results.correlationValue}</strong><span>Correlation</span></div>
+            <div><strong>{results.correlationValue >= 0 ? 'Positive' : 'Negative'}</strong><span>Relationship direction</span></div>
             <div><strong>{results.allCorrelations.length}</strong><span>Pairs tested</span></div>
           </div>
           <MiniTable rows={results.allCorrelations.slice(0, 8)} />

@@ -1,7 +1,7 @@
 export default function AgentPlan({ plan }) {
   if (!plan?.length) return null;
   return (
-    <section className="card">
+    <section className="card accent-purple">
       <div className="section-title">
         <h2>Agent Plan</h2>
         <span className="badge success">{plan.length} steps</span>

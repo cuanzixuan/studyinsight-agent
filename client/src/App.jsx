@@ -195,8 +195,8 @@ export default function App() {
   return (
     <main>
       <Header />
-      <div className="layout">
-        <div className="controls">
+      <div className="dashboard-layout">
+        <aside className="controls" aria-label="Analysis controls">
           <FileUploader onFileSelected={handleFileSelected} onSampleSelected={handleSampleSelected} datasetName={datasetName} />
           <GoalSelector
             goal={goal}
@@ -206,19 +206,34 @@ export default function App() {
             columns={columns}
           />
           <InsightModeSelector mode={mode} onModeChange={setMode} />
-          <button className="run-button" type="button" onClick={runAgent} disabled={isRunning}>
-            {isRunning ? 'Running Agent...' : 'Run Analysis Agent'}
-          </button>
+          <section className="card run-card">
+            <button className="run-button" type="button" onClick={runAgent} disabled={isRunning}>
+              {isRunning ? 'Running Agent...' : 'Run Analysis Agent'}
+            </button>
+            <p className="muted">Standard Insight runs locally. Smart Insight falls back automatically if unavailable.</p>
+          </section>
           {error && <div className="notice warning">{error}</div>}
-        </div>
+        </aside>
         <div className="outputs">
-          <DatasetPreview profile={profile} />
-          <WorkflowPanel completed={Boolean(report)} />
-          <AgentTrace trace={trace} />
-          <AgentPlan plan={plan} />
-          <ToolResults goal={goal} results={results} />
-          <ChartPanel goal={goal} profile={profile} results={results} data={data} />
-          <InsightReport report={report} modeUsed={modeUsed} warning={warning} onNextAction={handleNextAction} />
+          <WorkflowPanel completed={Boolean(report)} warning={warning} running={isRunning} />
+          {!report && (
+            <section className="card empty-state">
+              <span className="badge">No analysis yet</span>
+              <h2>Load a dataset and click Run Analysis Agent to start.</h2>
+              <p>Load a sample dataset or upload a CSV, choose a goal, and run the agent.</p>
+              {!data.length && <div className="notice warning">No dataset is loaded yet.</div>}
+            </section>
+          )}
+          {report && (
+            <>
+              <DatasetPreview profile={profile} />
+              <AgentPlan plan={plan} />
+              <AgentTrace trace={trace} />
+              <ToolResults goal={goal} results={results} />
+              <ChartPanel goal={goal} profile={profile} results={results} data={data} />
+              <InsightReport report={report} modeUsed={modeUsed} warning={warning} onNextAction={handleNextAction} />
+            </>
+          )}
         </div>
       </div>
     </main>

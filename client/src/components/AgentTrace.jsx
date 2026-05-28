@@ -2,7 +2,7 @@ export default function AgentTrace({ trace }) {
   if (!trace?.length) return null;
 
   return (
-    <section className="card">
+    <section className="card accent-amber">
       <div className="section-title">
         <h2>Agent Trace</h2>
         <span className="badge success">action-observation log</span>

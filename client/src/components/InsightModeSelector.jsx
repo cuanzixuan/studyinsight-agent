@@ -5,7 +5,7 @@ const modes = [
 
 export default function InsightModeSelector({ mode, onModeChange }) {
   return (
-    <section className="card control-card">
+    <section className="card control-card accent-emerald">
       <div>
         <h2>Insight Mode</h2>
         <p className="muted">Standard mode works without any API key.</p>

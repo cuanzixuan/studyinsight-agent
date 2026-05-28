@@ -5,12 +5,17 @@ export default function DatasetPreview({ profile }) {
   return (
     <section className="card">
       <div className="section-title">
-        <h2>Dataset Preview</h2>
-        <span className="badge">{profile.rowCount} rows · {profile.columnCount} columns</span>
+        <div>
+          <h2>Dataset Preview</h2>
+          <p className="section-subtitle">First five rows plus detected schema information.</p>
+        </div>
+        <span className="badge">{profile.rowCount} rows / {profile.columnCount} columns</span>
       </div>
       <div className="meta-grid">
-        <div><strong>Numeric</strong><span>{profile.numericColumns.join(', ') || 'None'}</span></div>
-        <div><strong>Categorical</strong><span>{profile.categoricalColumns.join(', ') || 'None'}</span></div>
+        <div><strong>{profile.rowCount}</strong><span>Rows</span></div>
+        <div><strong>{profile.columnCount}</strong><span>Columns</span></div>
+        <div><strong>{profile.numericColumns.length}</strong><span>Numeric: {profile.numericColumns.join(', ') || 'None'}</span></div>
+        <div><strong>{profile.categoricalColumns.length}</strong><span>Categorical: {profile.categoricalColumns.join(', ') || 'None'}</span></div>
       </div>
       <div className="table-wrap">
         <table>
