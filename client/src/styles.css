@@ -306,6 +306,13 @@ th {
   margin-bottom: 8px;
 }
 
+.plan-item .reason-text {
+  background: #f8fafc;
+  border-left: 3px solid #2563eb;
+  color: #475569;
+  padding: 8px 10px;
+}
+
 .step-number {
   align-items: center;
   background: #dbeafe;
@@ -316,6 +323,54 @@ th {
   height: 28px;
   justify-content: center;
   width: 28px;
+}
+
+.trace-list {
+  display: grid;
+  gap: 12px;
+}
+
+.trace-item {
+  border-left: 3px solid #0f766e;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 4px 0 4px 12px;
+}
+
+.trace-index {
+  align-items: center;
+  background: #ccfbf1;
+  border-radius: 999px;
+  color: #0f766e;
+  display: inline-flex;
+  font-weight: 800;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.trace-item dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.trace-item dl div {
+  display: grid;
+  gap: 3px;
+}
+
+.trace-item dt {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.trace-item dd {
+  color: #25324a;
+  margin: 0;
 }
 
 .insight-card {
@@ -330,6 +385,32 @@ th {
 .report-section li {
   color: #35445d;
   line-height: 1.55;
+}
+
+.next-action-list {
+  display: grid;
+  gap: 10px;
+}
+
+.next-action {
+  background: #f8fafc;
+  border: 1px solid #d7e0ec;
+  border-radius: 8px;
+  color: #172033;
+  cursor: pointer;
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.next-action:hover {
+  border-color: #2563eb;
+}
+
+.next-action span {
+  color: #64748b;
+  font-size: 0.88rem;
 }
 
 @media (max-width: 900px) {

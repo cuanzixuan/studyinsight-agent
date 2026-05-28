@@ -5,6 +5,7 @@ import GoalSelector from './components/GoalSelector.jsx';
 import InsightModeSelector from './components/InsightModeSelector.jsx';
 import WorkflowPanel from './components/WorkflowPanel.jsx';
 import DatasetPreview from './components/DatasetPreview.jsx';
+import AgentTrace from './components/AgentTrace.jsx';
 import AgentPlan from './components/AgentPlan.jsx';
 import ToolResults from './components/ToolResults.jsx';
 import ChartPanel from './components/ChartPanel.jsx';
@@ -13,9 +14,80 @@ import { sampleDatasets } from './agent/sampleData.js';
 import { profileDataset } from './agent/profiler.js';
 import { createAnalysisPlan } from './agent/planner.js';
 import { executeAnalysis } from './agent/executor.js';
-import { generateStandardInsights } from './agent/insightGenerator.js';
+import { generateRecommendedNextActions, generateStandardInsights } from './agent/insightGenerator.js';
 import { parseCsvFile } from './utils/csvParser.js';
 import { generateSmartInsights } from './utils/apiClient.js';
+
+function describeToolSelection(goal, profile, results) {
+  if (results?.error) return results.message;
+
+  if (goal === 'Compare Categories') {
+    return `Selected grouped mean analysis using ${results.categoryColumn} as the category tool input and ${results.numericColumn} as the numeric metric.`;
+  }
+
+  if (goal === 'Find Relationships') {
+    return `Selected correlation analysis and a scatter chart because ${profile.numericColumns.length} numeric columns are available. Strongest pair: ${results.strongestPair.join(' and ')}.`;
+  }
+
+  if (goal === 'Detect Anomalies') {
+    return `Selected IQR anomaly detection for ${results.numericColumn}; found ${results.anomalyCount} potential anomalies.`;
+  }
+
+  return `Selected descriptive statistics and a summary chart for ${profile.numericColumns.length} numeric and ${profile.categoricalColumns.length} categorical columns.`;
+}
+
+function buildAgentTrace({ goal, profile, plan, results, modeUsed }) {
+  const chartTool = goal === 'Find Relationships'
+    ? 'Scatter Chart Generator'
+    : goal === 'Detect Anomalies'
+      ? 'Anomaly Chart Generator'
+      : 'Bar Chart Generator';
+
+  return [
+    {
+      step: 'Observe dataset',
+      action: 'Profile uploaded CSV or selected sample dataset',
+      tool: 'Data Profiler',
+      observation: `${profile.rowCount} rows, ${profile.columnCount} columns, ${profile.numericColumns.length} numeric columns, ${profile.categoricalColumns.length} categorical columns`,
+      reason: 'The agent needs schema information before planning or selecting analysis tools.'
+    },
+    {
+      step: 'Interpret user goal',
+      action: `Map the selected goal to a task-specific analysis strategy: ${goal}`,
+      tool: 'Goal Interpreter',
+      observation: `The selected goal is ${goal}.`,
+      reason: 'The user goal determines which deterministic tools are appropriate.'
+    },
+    {
+      step: 'Select analysis tools',
+      action: plan.map((item) => item.tool).join(', '),
+      tool: 'Analysis Planner',
+      observation: describeToolSelection(goal, profile, results),
+      reason: plan[0]?.reason || 'The planner selects tools based on the goal and profiled dataset columns.'
+    },
+    {
+      step: 'Execute data tools',
+      action: 'Run statistical analysis on the loaded rows',
+      tool: 'Statistics Executor',
+      observation: results?.error ? results.message : 'Computed tool results are available in the Tool Execution Results section.',
+      reason: 'Numerical evidence must come from deterministic computations before any report is generated.'
+    },
+    {
+      step: 'Generate visualization',
+      action: `Create a chart for ${goal}`,
+      tool: chartTool,
+      observation: results?.error ? 'Chart skipped because the selected goal could not be computed.' : 'A goal-specific visualization was generated from computed results.',
+      reason: 'Visualization helps the user inspect the computed observation quickly during a short demo.'
+    },
+    {
+      step: 'Generate final report',
+      action: modeUsed === 'smart' ? 'Summarize computed results with Smart Insight' : 'Summarize computed results with Standard Insight',
+      tool: modeUsed === 'smart' ? 'Backend LLM Insight Generator' : 'Local Template Insight Generator',
+      observation: `${modeUsed === 'smart' ? 'Smart' : 'Standard'} Insight produced a structured report.`,
+      reason: 'The final report converts observations into summary, findings, next steps, and limitations.'
+    }
+  ];
+}
 
 export default function App() {
   const [data, setData] = useState([]);
@@ -25,6 +97,7 @@ export default function App() {
   const [mode, setMode] = useState('standard');
   const [profile, setProfile] = useState(null);
   const [plan, setPlan] = useState([]);
+  const [trace, setTrace] = useState([]);
   const [results, setResults] = useState(null);
   const [report, setReport] = useState(null);
   const [modeUsed, setModeUsed] = useState('standard');
@@ -64,6 +137,7 @@ export default function App() {
   function resetOutputs() {
     setProfile(null);
     setPlan([]);
+    setTrace([]);
     setResults(null);
     setReport(null);
     setWarning('');
@@ -88,6 +162,10 @@ export default function App() {
       if (mode === 'smart') {
         try {
           nextReport = await generateSmartInsights({ goal, profile: nextProfile, plan: nextPlan, results: nextResults });
+          nextReport = {
+            ...nextReport,
+            recommendedNextActions: generateRecommendedNextActions(goal, nextResults, nextProfile)
+          };
         } catch {
           nextReport = generateStandardInsights(nextProfile, nextPlan, nextResults, goal);
           nextModeUsed = 'standard';
@@ -99,12 +177,19 @@ export default function App() {
 
       setProfile(nextProfile);
       setPlan(nextPlan);
+      setTrace(buildAgentTrace({ goal, profile: nextProfile, plan: nextPlan, results: nextResults, modeUsed: nextModeUsed }));
       setResults(nextResults);
       setReport(nextReport);
       setModeUsed(nextModeUsed);
     } finally {
       setIsRunning(false);
     }
+  }
+
+  function handleNextAction(action) {
+    setGoal(action.goal);
+    setTargetColumn(action.targetColumn || '');
+    setWarning('');
   }
 
   return (
@@ -129,10 +214,11 @@ export default function App() {
         <div className="outputs">
           <DatasetPreview profile={profile} />
           <WorkflowPanel completed={Boolean(report)} />
+          <AgentTrace trace={trace} />
           <AgentPlan plan={plan} />
           <ToolResults goal={goal} results={results} />
           <ChartPanel goal={goal} profile={profile} results={results} data={data} />
-          <InsightReport report={report} modeUsed={modeUsed} warning={warning} />
+          <InsightReport report={report} modeUsed={modeUsed} warning={warning} onNextAction={handleNextAction} />
         </div>
       </div>
     </main>

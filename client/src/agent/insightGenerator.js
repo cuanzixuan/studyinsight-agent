@@ -13,6 +13,7 @@ export function generateStandardInsights(profile, plan, results, goal) {
       summary: results.message,
       keyFindings: ['The selected analysis could not be completed with the current dataset structure.'],
       recommendedNextSteps: ['Choose a different goal or upload a CSV with the required numeric and categorical columns.'],
+      recommendedNextActions: generateRecommendedNextActions(goal, results, profile),
       limitations: ['No statistical result was generated for this run.']
     };
   }
@@ -25,6 +26,7 @@ export function generateStandardInsights(profile, plan, results, goal) {
         `The lowest average ${results.numericColumn} is found in ${results.lowestGroup?.category} (${results.lowestGroup?.mean}).`
       ],
       recommendedNextSteps: ['Inspect the top and bottom groups for contextual causes.', 'Check whether group sizes are balanced before making decisions.'],
+      recommendedNextActions: generateRecommendedNextActions(goal, results, profile),
       limitations: ['Group averages can hide variation inside each category.', 'This comparison does not establish causation.']
     };
   }
@@ -38,6 +40,7 @@ export function generateStandardInsights(profile, plan, results, goal) {
         `This suggests a ${direction} association, but correlation does not prove causation.`
       ],
       recommendedNextSteps: ['Use the scatter plot to check for non-linear patterns or clusters.', 'Consider domain context before interpreting the relationship.'],
+      recommendedNextActions: generateRecommendedNextActions(goal, results, profile),
       limitations: ['Pearson correlation captures linear relationships only.', 'Outliers can strongly affect correlation values.']
     };
   }
@@ -50,6 +53,7 @@ export function generateStandardInsights(profile, plan, results, goal) {
         `The normal range was estimated from ${results.lowerBound} to ${results.upperBound}.`
       ],
       recommendedNextSteps: ['Review the flagged rows for data entry issues or meaningful exceptional cases.', 'Compare anomalies against other columns for additional context.'],
+      recommendedNextActions: generateRecommendedNextActions(goal, results, profile),
       limitations: ['IQR detection is a general rule and may not match every domain threshold.', 'Small datasets can produce unstable anomaly bounds.']
     };
   }
@@ -62,6 +66,53 @@ export function generateStandardInsights(profile, plan, results, goal) {
       `The columns with the most missing values are ${list(missingLeaders(profile))}.`
     ],
     recommendedNextSteps: ['Investigate columns with missing values before advanced modeling.', 'Use a more specific goal to compare groups, find relationships, or detect anomalies.'],
+    recommendedNextActions: generateRecommendedNextActions(goal, results, profile),
     limitations: ['The report is based on descriptive statistics only.', 'The agent does not infer causal relationships from this summary.']
   };
+}
+
+export function generateRecommendedNextActions(goal, results, profile) {
+  if (goal === 'Find Relationships' && !results?.error) {
+    const [firstColumn] = results.strongestPair || [];
+    return [
+      {
+        label: `Compare categories using ${profile.categoricalColumns?.[0] || 'a category column'}`,
+        goal: 'Compare Categories',
+        targetColumn: profile.categoricalColumns?.[0] || ''
+      },
+      {
+        label: `Detect anomalies in ${firstColumn || 'the strongest numeric column'}`,
+        goal: 'Detect Anomalies',
+        targetColumn: firstColumn || ''
+      }
+    ];
+  }
+
+  if (goal === 'Compare Categories') {
+    return [
+      { label: 'Find relationships between numeric columns', goal: 'Find Relationships', targetColumn: '' },
+      {
+        label: `Detect anomalies in ${results?.numericColumn || 'a numeric metric'}`,
+        goal: 'Detect Anomalies',
+        targetColumn: results?.numericColumn || ''
+      }
+    ];
+  }
+
+  if (goal === 'Detect Anomalies') {
+    return [
+      { label: 'Review anomaly rows in the table above', goal: 'Detect Anomalies', targetColumn: results?.numericColumn || '' },
+      { label: 'Run an overall summary for broader context', goal: 'Overall Summary', targetColumn: '' }
+    ];
+  }
+
+  return [
+    { label: 'Compare categories', goal: 'Compare Categories', targetColumn: profile.categoricalColumns?.[0] || '' },
+    { label: 'Find relationships', goal: 'Find Relationships', targetColumn: '' },
+    {
+      label: `Detect anomalies${profile.numericColumns?.[0] ? ` in ${profile.numericColumns[0]}` : ''}`,
+      goal: 'Detect Anomalies',
+      targetColumn: profile.numericColumns?.[0] || ''
+    }
+  ];
 }

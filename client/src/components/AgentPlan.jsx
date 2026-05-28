@@ -13,6 +13,7 @@ export default function AgentPlan({ plan }) {
             <div>
               <h3>{item.step}</h3>
               <p>{item.description}</p>
+              <p className="reason-text">{item.reason}</p>
               <span className="badge">{item.tool}</span>
             </div>
             <span className="badge success">{item.status}</span>
