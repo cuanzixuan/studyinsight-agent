@@ -30,8 +30,11 @@ export default function ToolResults({ goal, results }) {
             <div><strong>{results.rowCount}</strong><span>Rows</span></div>
             <div><strong>{results.columnCount}</strong><span>Columns</span></div>
             <div><strong>{results.numericSummaries.length}</strong><span>Numeric summaries</span></div>
+            <div><strong>{missingRows(results).reduce((sum, row) => sum + row.missingCount, 0)}</strong><span>Missing cells</span></div>
           </div>
           <MiniTable rows={results.numericSummaries.slice(0, 6)} />
+          <MissingValueSummary results={results} />
+          <SuggestedCleaningStrategy results={results} />
         </>
       )}
       {goal === 'Compare Categories' && (
@@ -73,6 +76,50 @@ export default function ToolResults({ goal, results }) {
         </>
       )}
     </section>
+  );
+}
+
+function missingRows(results) {
+  const counts = results?.missingValueSummary || {};
+  const percentages = results?.missingPercentageSummary || {};
+  return Object.entries(counts)
+    .filter(([, count]) => Number(count) > 0)
+    .map(([column, count]) => ({
+      column,
+      missingCount: Number(count) || 0,
+      missingPercentage: `${Number(percentages[column] || 0).toFixed(1)}%`
+    }))
+    .sort((a, b) => b.missingCount - a.missingCount);
+}
+
+function MissingValueSummary({ results }) {
+  const rows = missingRows(results);
+  return (
+    <div className="result-section">
+      <h3>Missing Value Summary</h3>
+      {rows.length ? <MiniTable rows={rows} /> : <p className="muted">No missing values detected.</p>}
+    </div>
+  );
+}
+
+function SuggestedCleaningStrategy({ results }) {
+  const rows = missingRows(results);
+  if (!rows.length) return null;
+
+  const numericColumns = new Set((results.numericSummaries || []).map((summary) => summary.column));
+  const strategies = rows.map((row) => ({
+    column: row.column,
+    suggestedStrategy: numericColumns.has(row.column)
+      ? 'Numeric column. Consider median imputation after checking whether missingness is random, or review missing records.'
+      : 'Categorical column. Consider filling with "Unknown" or verifying source records.'
+  }));
+
+  return (
+    <div className="result-section cleaning-section">
+      <h3>Suggested Cleaning Strategy</h3>
+      <MiniTable rows={strategies} />
+      <p className="muted">These are recommendations only. StudyInsight does not modify or impute the original dataset.</p>
+    </div>
   );
 }
 

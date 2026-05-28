@@ -1,6 +1,9 @@
 export default function DatasetPreview({ profile }) {
   if (!profile) return null;
   const rows = profile.sampleRows || [];
+  const missingValues = profile.missingValues || {};
+  const totalMissingCells = Object.values(missingValues).reduce((sum, count) => sum + (Number(count) || 0), 0);
+  const affectedColumns = Object.values(missingValues).filter((count) => Number(count) > 0).length;
 
   return (
     <section className="card">
@@ -16,6 +19,8 @@ export default function DatasetPreview({ profile }) {
         <div><strong>{profile.columnCount}</strong><span>Columns</span></div>
         <div><strong>{profile.numericColumns.length}</strong><span>Numeric: {profile.numericColumns.join(', ') || 'None'}</span></div>
         <div><strong>{profile.categoricalColumns.length}</strong><span>Categorical: {profile.categoricalColumns.join(', ') || 'None'}</span></div>
+        <div><strong>{totalMissingCells}</strong><span>Missing Cells</span></div>
+        <div><strong>{affectedColumns}</strong><span>Affected Columns</span></div>
       </div>
       <div className="table-wrap">
         <table>

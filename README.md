@@ -116,6 +116,7 @@ The backend runs on `http://localhost:5000`.
 ## Limitations
 
 - Works best with clean tabular CSV files.
+- The agent detects and reports missing values but does not automatically impute them, because cleaning strategies depend on the data context.
 - Does not replace expert statistical analysis.
 - Smart Insight depends on external model API availability.
 - Current version does not use a database or save analysis history.

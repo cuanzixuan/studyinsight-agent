@@ -102,6 +102,7 @@ export default function App() {
   const [report, setReport] = useState(null);
   const [modeUsed, setModeUsed] = useState('standard');
   const [warning, setWarning] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
   const [error, setError] = useState('');
   const [isRunning, setIsRunning] = useState(false);
 
@@ -141,11 +142,13 @@ export default function App() {
     setResults(null);
     setReport(null);
     setWarning('');
+    setInfoMessage('');
   }
 
   async function runAgent() {
     setError('');
     setWarning('');
+    setInfoMessage('');
     if (!data.length) {
       setError('Load a sample dataset or upload a CSV before running the analysis agent.');
       return;
@@ -189,7 +192,23 @@ export default function App() {
   function handleNextAction(action) {
     setGoal(action.goal);
     setTargetColumn(action.targetColumn || '');
+    clearRunOutput('Recommended action selected. Click Run Analysis Agent to run the new analysis.');
+  }
+
+  function handleGoalChange(nextGoal) {
+    setGoal(nextGoal);
+    if (report || results) {
+      clearRunOutput('Analysis goal changed. Click Run Analysis Agent to run the new analysis.');
+    }
+  }
+
+  function clearRunOutput(message) {
     setWarning('');
+    setInfoMessage(message);
+    setPlan([]);
+    setTrace([]);
+    setResults(null);
+    setReport(null);
   }
 
   return (
@@ -200,7 +219,7 @@ export default function App() {
           <FileUploader onFileSelected={handleFileSelected} onSampleSelected={handleSampleSelected} datasetName={datasetName} />
           <GoalSelector
             goal={goal}
-            onGoalChange={setGoal}
+            onGoalChange={handleGoalChange}
             targetColumn={targetColumn}
             onTargetColumnChange={setTargetColumn}
             columns={columns}
@@ -213,6 +232,7 @@ export default function App() {
             <p className="muted">Standard Insight runs locally. Smart Insight falls back automatically if unavailable.</p>
           </section>
           {error && <div className="notice warning">{error}</div>}
+          {infoMessage && <div className="notice info">{infoMessage}</div>}
         </aside>
         <div className="outputs">
           <WorkflowPanel completed={Boolean(report)} warning={warning} running={isRunning} />
@@ -221,6 +241,7 @@ export default function App() {
               <span className="badge">No analysis yet</span>
               <h2>Load a dataset and click Run Analysis Agent to start.</h2>
               <p>Load a sample dataset or upload a CSV, choose a goal, and run the agent.</p>
+              {infoMessage && <div className="notice info">{infoMessage}</div>}
               {!data.length && <div className="notice warning">No dataset is loaded yet.</div>}
             </section>
           )}

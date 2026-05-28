@@ -2,9 +2,21 @@ const list = (items) => (items && items.length ? items.join(', ') : 'none detect
 
 function missingLeaders(profile) {
   return Object.entries(profile.missingValues || {})
+    .filter(([, count]) => Number(count) > 0)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([column, count]) => `${column} (${count})`);
+}
+
+function missingSummary(profile) {
+  const entries = Object.entries(profile.missingValues || {});
+  const totalMissingCells = entries.reduce((sum, [, count]) => sum + (Number(count) || 0), 0);
+  const affectedColumns = entries.filter(([, count]) => Number(count) > 0).length;
+  return {
+    totalMissingCells,
+    affectedColumns,
+    topMissingColumns: missingLeaders(profile)
+  };
 }
 
 export function generateStandardInsights(profile, plan, results, goal) {
@@ -58,14 +70,17 @@ export function generateStandardInsights(profile, plan, results, goal) {
     };
   }
 
+  const missing = missingSummary(profile);
+
   return {
     summary: `The dataset contains ${profile.rowCount} rows and ${profile.columnCount} columns.`,
     keyFindings: [
       `The detected numeric columns are ${list(profile.numericColumns)}.`,
       `The detected categorical columns are ${list(profile.categoricalColumns)}.`,
-      `The columns with the most missing values are ${list(missingLeaders(profile))}.`
+      `The dataset contains ${missing.totalMissingCells} missing cells across ${missing.affectedColumns} affected columns.`,
+      `The columns with the most missing values are ${list(missing.topMissingColumns)}.`
     ],
-    recommendedNextSteps: ['Investigate columns with missing values before advanced modeling.', 'Use a more specific goal to compare groups, find relationships, or detect anomalies.'],
+    recommendedNextSteps: ['Review missing values before running advanced analysis.', 'Investigate columns with missing values before advanced modeling.', 'Use a more specific goal to compare groups, find relationships, or detect anomalies.'],
     recommendedNextActions: generateRecommendedNextActions(goal, results, profile),
     limitations: ['The report is based on descriptive statistics only.', 'The agent does not infer causal relationships from this summary.']
   };

@@ -22,6 +22,7 @@ export function executeAnalysis(data, profile, goal, targetColumn) {
       columnCount: profile.columnCount,
       numericSummaries,
       missingValueSummary: profile.missingValues,
+      missingPercentageSummary: profile.missingPercentages,
       topCategoricalValues,
       selectedNumericColumn: profile.numericColumns[0],
       selectedCategoricalColumn: profile.categoricalColumns[0]
