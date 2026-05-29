@@ -29,10 +29,10 @@ export default function ToolResults({ goal, results }) {
           <div className="metric-grid">
             <div><strong>{results.rowCount}</strong><span>Rows</span></div>
             <div><strong>{results.columnCount}</strong><span>Columns</span></div>
-            <div><strong>{results.numericSummaries.length}</strong><span>Numeric summaries</span></div>
+            <div><strong>{(results.numericSummaries || []).length}</strong><span>Numeric summaries</span></div>
             <div><strong>{missingRows(results).reduce((sum, row) => sum + row.missingCount, 0)}</strong><span>Missing cells</span></div>
           </div>
-          <MiniTable rows={results.numericSummaries.slice(0, 6)} />
+          <MiniTable rows={(results.numericSummaries || []).slice(0, 6)} />
           <MissingValueSummary results={results} />
           <SuggestedCleaningStrategy results={results} />
         </>
@@ -45,18 +45,18 @@ export default function ToolResults({ goal, results }) {
             <div><strong>{results.highestGroup?.category}</strong><span>Highest group ({results.highestGroup?.mean})</span></div>
             <div><strong>{results.lowestGroup?.category}</strong><span>Lowest group ({results.lowestGroup?.mean})</span></div>
           </div>
-          <MiniTable rows={results.groupedMeans} />
+          <MiniTable rows={Array.isArray(results.groupedMeans) ? results.groupedMeans : []} />
         </>
       )}
       {goal === 'Find Relationships' && (
         <>
           <div className="metric-grid">
-            <div><strong>{results.strongestPair.join(' + ')}</strong><span>Strongest pair</span></div>
+            <div><strong>{Array.isArray(results.strongestPair) ? results.strongestPair.join(' + ') : 'Unavailable'}</strong><span>Strongest pair</span></div>
             <div><strong>{results.correlationValue}</strong><span>Correlation</span></div>
             <div><strong>{results.correlationValue >= 0 ? 'Positive' : 'Negative'}</strong><span>Relationship direction</span></div>
-            <div><strong>{results.allCorrelations.length}</strong><span>Pairs tested</span></div>
+            <div><strong>{(results.allCorrelations || []).length}</strong><span>Pairs tested</span></div>
           </div>
-          <MiniTable rows={results.allCorrelations.slice(0, 8)} />
+          <MiniTable rows={(results.allCorrelations || []).slice(0, 8)} />
         </>
       )}
       {goal === 'Detect Anomalies' && (

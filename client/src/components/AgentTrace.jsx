@@ -9,7 +9,10 @@ export default function AgentTrace({ trace }) {
       </div>
       <div className="trace-list">
         {trace.map((item, index) => (
-          <article className="trace-item" key={`${item.step}-${index}`}>
+          <article
+            className={item.tool === 'Adaptive Agent Controller' ? 'trace-item adaptive-trace-item' : 'trace-item'}
+            key={`${item.step}-${index}`}
+          >
             <span className="trace-index">{index + 1}</span>
             <div>
               <h3>{item.step}</h3>

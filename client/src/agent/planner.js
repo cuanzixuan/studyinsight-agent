@@ -37,6 +37,7 @@ export function createAnalysisPlan(profile, goal, targetColumn) {
     tool,
     description: targetColumn && step.startsWith('Select') ? `${description} Target hint: ${targetColumn}.` : description,
     reason,
-    status: 'completed'
+    status: 'completed',
+    dynamic: false
   }));
 }

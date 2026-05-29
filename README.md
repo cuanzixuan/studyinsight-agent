@@ -23,9 +23,22 @@ The agent does not browse the web, modify files, persist history, or take open-e
 
 ## Why This Is an Agent
 
-StudyInsight behaves like an agent because it receives a user goal, observes the dataset, plans analysis steps, selects and executes tools, observes computed results, and generates a final report. The Agent Trace section makes this action-observation loop visible for each run.
+StudyInsight behaves like an agent because it receives a user goal, observes the dataset, evaluates dataset state, adapts the analysis plan, selects and executes tools, observes computed results, and generates a final report. The Agent Trace section makes this action-observation loop visible for each run.
 
 Smart Insight can optionally use an LLM to polish the computed report, but the numerical analysis comes from deterministic tools such as grouped means, correlations, descriptive statistics, and IQR anomaly detection.
+
+## Adaptive Agent Behavior
+
+StudyInsight is a task-specific data analysis agent with an adaptive controller. The controller observes the dataset profile, checks whether the selected goal is feasible, inserts additional tools when needed, and falls back to a safer analysis goal when necessary.
+
+Examples:
+
+- If missing values exist, the agent inserts Missing Value Scanner and Cleaning Strategy Advisor steps.
+- If Find Relationships is selected but fewer than two numeric columns are available, the agent falls back to Overall Summary.
+- If Compare Categories is selected but no categorical or numeric columns are available, the agent falls back to Overall Summary.
+- Recommended Next Actions allow the user to continue the analysis loop.
+
+This is a controlled, task-specific adaptive agent, not a general-purpose autonomous agent.
 
 ## Why This Is An Agent Rather Than A Chatbot
 

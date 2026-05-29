@@ -33,21 +33,26 @@ function ReportList({ title, items, numbered, muted }) {
 
 function NextActions({ actions, onNextAction }) {
   if (!actions?.length) return null;
+  const validGoals = ['Overall Summary', 'Compare Categories', 'Find Relationships', 'Detect Anomalies'];
   return (
     <div className="report-section">
       <h3>Recommended Next Actions</h3>
       <div className="next-action-list">
-        {actions.map((action, index) => (
+        {actions.map((action, index) => {
+          const isValid = action && validGoals.includes(action.goal);
+          return (
           <button
-            className="next-action"
+            className={isValid ? 'next-action' : 'next-action disabled'}
             key={`${action.goal}-${action.label}-${index}`}
             type="button"
-            onClick={() => onNextAction?.(action)}
+            disabled={!isValid}
+            onClick={() => isValid && onNextAction?.(action)}
           >
-            <strong>{action.goal}</strong>
-            <span>{action.label}</span>
+            <strong>{action?.goal || 'Unsupported action'}</strong>
+            <span>{action?.label || 'This recommendation is not available.'}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
