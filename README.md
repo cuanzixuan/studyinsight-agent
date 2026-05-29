@@ -1,6 +1,6 @@
 # StudyInsight: Goal-Aware CSV Data Analysis Agent
 
-Demo video link: _add your demo video link here_
+Demo video link: https://youtu.be/04gwo60qs94
 
 ## Project Summary
 
